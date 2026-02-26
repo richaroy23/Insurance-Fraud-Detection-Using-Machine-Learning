@@ -67,15 +67,6 @@ def multiple_numerical_distributions(df, columns):
     for col in columns:
         numerical_distribution(df, col)
 
-def correlation_heatmap(df):
-    plt.figure(figsize=(12,8))
-    sns.heatmap(df.corr(numeric_only=True),
-                cmap="coolwarm",
-                annot=False)
-    plt.title("Correlation Heatmap")
-    plt.show()
-eda.correlation_heatmap(df)
-
 # Fraud Countplot
 def fraud_countplot(df, column="fraud_reported"):
     plt.figure(figsize=(6,4))
@@ -119,7 +110,6 @@ def age_distribution(df, column="age"):
 
 # Correlation Heatmap
 def correlation_heatmap(df):
-
     plt.figure(figsize=(14,10))
     sns.heatmap(
         df.corr(numeric_only=True),
