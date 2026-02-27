@@ -13,3 +13,10 @@ import pickle
 from scipy import stats
 warnings.filterwarnings ('ignore')
 plt.style.use('fivethirtyeight')
+
+
+# Read the dataset
+df = pd.read_csv("insurance_claims.csv")
+df.head()
+df.isna().any()
+df.isna().sum()
