@@ -10,15 +10,15 @@
 <body>
     <div class="dashboard">
         <div class="dashboard-container">
-            <!-- ===== HEADER ===== -->
+            <!--  HEADER -->
             <div class="dashboard-header">
                 <h1 class="dashboard-title">🛡️ Fraud Detection Dashboard</h1>
                 <p class="dashboard-subtitle">Machine Learning-Powered Insurance Claim Analysis</p>
             </div>
 
-            <!-- ===== MAIN GRID ===== -->
+            <!-- MAIN GRID -->
             <div class="dashboard-grid">
-                <!-- ===== LEFT SIDEBAR: MODEL INFO ===== -->
+                <!-- LEFT SIDEBAR: MODEL INFO -->
                 <div class="dashboard-sidebar">
                     <!-- Model Information Card -->
                     <div class="card">
@@ -90,7 +90,7 @@
                     </div>
                 </div>
 
-                <!-- ===== CENTER: FORM & PREDICTION ===== -->
+                <!--  CENTER: FORM & PREDICTION -->
                 <div class="dashboard-main">
                     <!-- Input Form Card -->
                     <div class="card">
@@ -100,7 +100,7 @@
                         </div>
 
                         <form id="predictionForm" method="POST" action="/predict">
-                            <!-- ===== POLICY INFORMATION ===== -->
+                            <!-- POLICY INFORMATION -->
                             <div>
                                 <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
                                     <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">📄 Policy Information</h3>
@@ -137,7 +137,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== CLAIM DETAILS ===== -->
+                            <!-- CLAIM DETAILS -->
                             <div style="margin-top: var(--spacing-lg);">
                                 <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
                                     <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">💰 Claim Details</h3>
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== INCIDENT DETAILS ===== -->
+                            <!-- INCIDENT DETAILS -->
                             <div style="margin-top: var(--spacing-lg);">
                                 <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
                                     <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">⚠️ Incident Details</h3>
@@ -226,7 +226,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== CUSTOMER INFORMATION ===== -->
+                            <!-- CUSTOMER INFORMATION -->
                             <div style="margin-top: var(--spacing-lg);">
                                 <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
                                     <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">👤 Customer Information</h3>
@@ -265,7 +265,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== ACTION BUTTONS ===== -->
+                            <!-- ACTION BUTTONS -->
                             <div class="button-group">
                                 <button type="button" class="btn btn-secondary" onclick="fillSampleValues()">
                                     ✨ Fill Sample Values
@@ -278,7 +278,7 @@
                         </form>
                     </div>
 
-                    <!-- ===== PREDICTION RESULT ===== -->
+                    <!-- PREDICTION RESULT -->
                     <div id="predictionResult" class="hidden">
                         <div class="prediction-panel fade-in">
                             <div class="prediction-badge" id="resultBadge">
@@ -298,7 +298,7 @@
                             </div>
                         </div>
 
-                        <!-- ===== INSIGHTS ===== -->
+                        <!-- INSIGHTS -->
                         <div class="card mt-lg">
                             <div class="card-header">
                                 <div class="card-header-icon">💡</div>
@@ -309,7 +309,7 @@
                     </div>
                 </div>
 
-                <!-- ===== RIGHT SIDEBAR: FIELD GUIDE ===== -->
+                <!-- RIGHT SIDEBAR: FIELD GUIDE -->
                 <div class="dashboard-sidebar">
                     <div class="card">
                         <div class="card-header">
@@ -339,9 +339,9 @@
         </div>
     </div>
 
-    <!-- ===== SCRIPTS ===== -->
+    <!-- SCRIPTS -->
     <script>
-        // ===== Sample Data Filling =====
+        // Sample Data Filling
         function fillSampleValues() {
             document.querySelector('[name="insured_zip"]').value = '505000';
             document.querySelector('[name="months_as_customer"]').value = '200';
@@ -353,7 +353,7 @@
             document.querySelector('[name="insured_hobbies"]').value = '10';
         }
 
-        // ===== FORM SUBMISSION =====
+        // FORM SUBMISSION 
         document.getElementById('predictionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -411,7 +411,7 @@
             }
         });
 
-        // ===== DISPLAY PREDICTION =====
+        // DISPLAY PREDICTION 
         function displayPrediction(resultText, confidence, responseData) {
             const resultDiv = document.getElementById('predictionResult');
             const resultBadge = document.getElementById('resultBadge');
@@ -460,7 +460,7 @@
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // ===== SELECT STYLING =====
+        // SELECT STYLING
         const selects = document.querySelectorAll('select.form-input');
         selects.forEach(select => {
             select.style.cursor = 'pointer';
