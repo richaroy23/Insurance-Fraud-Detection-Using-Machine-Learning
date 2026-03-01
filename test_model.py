@@ -6,11 +6,56 @@ import joblib
 import pandas as pd
 import numpy as np
 from preprocessing import preprocess
-from sklearn.metrics import (confusion_matrix, classification_report, 
-                             precision_score, recall_score, f1_score, 
-                             roc_auc_score, roc_curve, auc)
+from app import app as flask_app, parse_inputs_from_source
+from sklearn.metrics import confusion_matrix, classification_report, roc_auc_score
 import os
 from datetime import datetime
+
+
+def validate_ui_parity(model, scaler, model_features) -> None:
+    """Validate that test-script prediction matches web API for the same sample input."""
+    sample_payload = {
+        "insured_zip": "505000",
+        "months_as_customer": "200",
+        "total_claim_amount": "50000",
+        "vehicle_claim": "35000",
+        "property_claim": "7500",
+        "incident_severity": "1",
+        "incident_date_actual": "15-02-2026",
+        "insured_hobbies": "10",
+    }
+
+    # Direct (test-script) prediction path
+    _, input_values = parse_inputs_from_source(sample_payload)
+    input_frame = pd.DataFrame([input_values], columns=model_features)
+    input_scaled = scaler.transform(input_frame)
+    direct_prediction = model.predict(input_scaled)[0]
+    direct_label = "Fraud" if direct_prediction == 1 else "Not Fraud"
+
+    # Web API prediction path (same payload)
+    with flask_app.test_client() as client:
+        response = client.post('/api/predict', json=sample_payload)
+
+    if response.status_code != 200:
+        raise RuntimeError(f"Web API prediction failed: {response.get_data(as_text=True)}")
+
+    api_data = response.get_json() or {}
+    api_label = api_data.get("prediction")
+
+    print("\n" + "="*70)
+    print("UI ↔ TEST SCRIPT PARITY CHECK")
+    print("="*70)
+    print(f"Sample input: {sample_payload}")
+    print(f"Direct test prediction: {direct_label}")
+    print(f"Web API prediction:     {api_label}")
+
+    if direct_label != api_label:
+        raise AssertionError(
+            "Prediction mismatch between test script and web UI path. "
+            "This indicates a potential scaling or encoding mismatch."
+        )
+
+    print("Parity result: ✓ MATCH")
 
 def test_model():
     """Test the trained model on test data with comprehensive metrics"""
@@ -19,10 +64,16 @@ def test_model():
     print("Loading model and scaler...")
     model = joblib.load("models/best_model.pkl")
     scaler = joblib.load("models/std_scaler.pkl")
+    model_features = joblib.load("models/model_features.pkl")
     
     # Load preprocessed data
     print("Loading and preprocessing data...")
-    X_train, X_test, y_train, y_test, _, _ = preprocess()
+    _, X_test, _, y_test, _ = preprocess(selected_features=model_features)
+
+    print(f"Using {len(model_features)} model features")
+
+    # Ensure the same sample gives the same prediction in test script and web API
+    validate_ui_parity(model, scaler, model_features)
     
     print("\n" + "="*70)
     print("INSURANCE FRAUD DETECTION MODEL - COMPREHENSIVE TEST REPORT")
@@ -33,7 +84,7 @@ def test_model():
     print(f"\nTesting on {num_samples} random samples from test data:\n")
     
     for i in range(min(num_samples, len(X_test))):
-        sample = X_test.iloc[i:i+1]
+        sample = X_test[i:i+1]
         actual = y_test.iloc[i]
         
         # Make prediction

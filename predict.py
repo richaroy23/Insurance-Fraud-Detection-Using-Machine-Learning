@@ -4,15 +4,15 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegressionCV
-from sklearn.preprocessing import StandardScaler
-import numpy as np
+import joblib
 
 from preprocessing import preprocess
 
 
 def make_predictions() -> None:
-    # Get preprocessed data
-    X_train, X_test, y_train, y_test = preprocess()
+    # Load selected model features and get preprocessed data
+    model_features = joblib.load("models/model_features.pkl")
+    X_train, X_test, y_train, y_test, _ = preprocess(selected_features=model_features)
     
     # Initialize and train models
     dtc = DecisionTreeClassifier()
@@ -24,7 +24,13 @@ def make_predictions() -> None:
     knn = KNeighborsClassifier(n_neighbors=30)
     knn.fit(X_train, y_train)
     
-    lr = LogisticRegressionCV(solver='lbfgs', max_iter=5000, cv=10)
+    lr = LogisticRegressionCV(
+        solver='lbfgs',
+        max_iter=5000,
+        cv=10,
+        l1_ratios=(0.0,),
+        use_legacy_attributes=False,
+    )
     lr.fit(X_train, y_train)
     
     gnb = GaussianNB()
@@ -33,18 +39,9 @@ def make_predictions() -> None:
     svc = SVC()
     svc.fit(X_train, y_train)
     
-    # Initialize and fit scaler
-    std_scaler = StandardScaler()
-    std_scaler.fit(X_train)
-    
-    # Sample prediction data
-    sample = [[328, 521585, 2012, 12, 250, 1000, 1406.91, 5600, 1, 100,
-               25, 25, 50000, 0, 120, 23, 56, 52, 1, 123, 2, 3, 1, 0, 2,
-               1, 150000, 2, 25, 2002]]
-    
-    # Scale the sample
-    sample_array = np.array(sample)
-    sample_scaled = std_scaler.transform(sample_array)
+    # Use one already-scaled test sample to keep feature dimensions consistent
+    sample_scaled = X_test[0:1]
+    actual_label = y_test.iloc[0]
     
     # Make predictions
     print("Decision Tree:", dtc.predict(sample_scaled))
@@ -53,6 +50,7 @@ def make_predictions() -> None:
     print("Logistic Regression:", lr.predict(sample_scaled))
     print("Naïve Bayes:", gnb.predict(sample_scaled))
     print("SVM:", svc.predict(sample_scaled))
+    print("Actual Label:", actual_label)
 
 
 if __name__ == "__main__":

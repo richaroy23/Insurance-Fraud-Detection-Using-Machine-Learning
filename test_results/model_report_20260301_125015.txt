@@ -1,0 +1,15 @@
+INSURANCE FRAUD DETECTION MODEL - TEST REPORT
+Generated: 2026-03-01 12:50:15
+======================================================================
+
+Accuracy: 84.00%
+Precision (Fraud): 64.41%
+Recall (Fraud): 77.55%
+F1-Score: 0.7037
+ROC-AUC Score: 0.8134
+
+Confusion Matrix:
+True Negatives: 130
+False Positives: 21
+False Negatives: 11
+True Positives: 38

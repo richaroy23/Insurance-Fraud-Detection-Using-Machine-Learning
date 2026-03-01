@@ -182,8 +182,9 @@ def encode_incident_date(raw_value: str) -> float:
     """Convert user-provided date to model incident_date encoding.
     
     Accepts DD-MM-YYYY or YYYY-MM-DD format.
-    Maps any calendar date (Jan 1 - Dec 31) proportionally to the training range (Jan 1 - Mar 1, 2015).
-    Example: 31-12-2026 (99% through year) → Mar 1 (99% through 60-day range)
+    Encoding behavior is aligned with training preprocessing:
+    - If exact YYYY-MM-DD date exists in training classes, use it directly.
+    - Otherwise, map by month/day to year 2015 and validate that mapped date exists.
     """
     value = str(raw_value).strip()
     if value == "":
@@ -202,25 +203,19 @@ def encode_incident_date(raw_value: str) -> float:
         raise ValueError(
             "Invalid date format. Please use DD-MM-YYYY (e.g., 15-06-2026) or YYYY-MM-DD."
         )
-    
-    # Calculate day-of-year (1-366)
-    day_of_year = parsed_date.dayofyear
-    # Days in year (account for leap years)
-    days_in_year = 366 if parsed_date.is_leap_year else 365
-    # Map proportionally to training date range (0-59 days from Jan 1, 2015)
-    training_day_offset = int((day_of_year - 1) / days_in_year * 59)
-    training_day_offset = min(training_day_offset, 59)  # Cap at 59
-    
-    # Compute the mapped date in 2015
-    training_start = pd.to_datetime('2015-01-01')
-    mapped_date = training_start + pd.Timedelta(days=training_day_offset)
-    normalized = mapped_date.strftime('%Y-%m-%d')
-    
-    # This should always be in range, but validate just in case
-    if normalized not in incident_date_known_dates:
+
+    exact_normalized = parsed_date.strftime('%Y-%m-%d')
+    if exact_normalized in incident_date_known_dates:
+        return float(incident_date_encoder.transform([exact_normalized])[0])
+
+    mapped_2015 = parsed_date.replace(year=2015).strftime('%Y-%m-%d')
+    if mapped_2015 not in incident_date_known_dates:
         raise ValueError(
-            f"Unexpected error: mapped date {normalized} is not in training set. Please contact support."
+            f"Date out of supported range. Please use dates between {incident_date_min} and {incident_date_max}, "
+            "or keep month/day within that range."
         )
+
+    normalized = mapped_2015
     return float(incident_date_encoder.transform([normalized])[0])
 
 
@@ -298,11 +293,11 @@ def api_predict():
         # Extract input values in exact feature order
         form_values, input_values = parse_inputs_from_source(data)
         
-        # Convert to numpy array and reshape
-        input_array = np.array(input_values).reshape(1, -1)
-        
+        # Convert to DataFrame with exact feature names/order
+        input_frame = pd.DataFrame([input_values], columns=model_features)
+
         # Apply scaling
-        input_scaled = scaler.transform(input_array)
+        input_scaled = scaler.transform(input_frame)
         
         # Make prediction
         prediction = model.predict(input_scaled)[0]
@@ -351,11 +346,11 @@ def predict():
         # Extract input values in exact feature order
         form_values, input_values = parse_inputs_from_source(request.form)
         
-        # Convert to numpy array and reshape
-        input_array = np.array(input_values).reshape(1, -1)
-        
+        # Convert to DataFrame with exact feature names/order
+        input_frame = pd.DataFrame([input_values], columns=model_features)
+
         # Apply scaling (must match training preprocessing)
-        input_scaled = scaler.transform(input_array)
+        input_scaled = scaler.transform(input_frame)
         
         # Make prediction
         prediction = model.predict(input_scaled)[0]
