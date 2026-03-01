@@ -1,132 +1,93 @@
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold
 
+import pandas as pd
+import joblib
+import os
+
+from evaluation import evaluate_classification
 from preprocessing import preprocess
 
 
 def main() -> None:
     X_train, X_test, y_train, y_test = preprocess()
+
+    models = {
+        "Decision Tree": DecisionTreeClassifier(class_weight='balanced'),
+        "Random Forest": RandomForestClassifier(
+            random_state=0,
+            class_weight='balanced'
+        ),
+        "KNN": KNeighborsClassifier(n_neighbors=30, weights='distance'),
+        "Logistic Regression": LogisticRegressionCV(
+            solver='lbfgs',
+            max_iter=5000,
+            cv=10,
+            class_weight='balanced'
+        ),
+        "Naïve Bayes": GaussianNB(),
+        "SVM": SVC(probability=True)
+    }
+    cv = StratifiedKFold(
+            n_splits=5, 
+            shuffle=True, 
+            random_state=42
+        )
     
-    # Initialize model
-    dtc = DecisionTreeClassifier()
+    results = []
 
-    # Train model
-    dtc.fit(X_train, y_train)
+    for name, model in models.items():
+        print("\n" + "=" * 50)
+        print(f"Training {name}...")
+        print("=" * 50)
 
-    # Predict on test data
-    y_pred = dtc.predict(X_test)
+        model.fit(X_train, y_train)
+    
+        scores = cross_val_score(
+            model,
+            X_train,
+            y_train,
+            cv=cv,
+            scoring='f1'
+        )
 
-    # Training accuracy
-    dtc_train_acc = accuracy_score(y_train, dtc.predict(X_train))
+        print(f"\n{name}")
+        print("Mean CV F1-score:", scores.mean())
+        print("CV Std:", scores.std())
 
-    # Testing accuracy
-    dtc_test_acc = accuracy_score(y_test, y_pred)
+        evaluate_classification(model, X_test, y_test)
+        
+        results.append({
+            "Model": name,
+            "CV Mean F1-score": scores.mean(),
+            "CV Std": scores.std()
+        })
 
-    print("Decision Tree Training Accuracy:", dtc_train_acc)
-    print("Decision Tree Testing Accuracy:", dtc_test_acc)
-
-    # Initialize Random Forest model
-    rf = RandomForestClassifier(random_state=0)
-
-    # Train the model
-    rf.fit(X_train, y_train)
-
-    # Predict on test data
-    y_pred_rf = rf.predict(X_test)
-
-    # Training accuracy
-    rf_train_acc = accuracy_score(y_train, rf.predict(X_train))
-
-    # Testing accuracy
-    rf_test_acc = accuracy_score(y_test, y_pred_rf)
-
-    print("Random Forest Training Accuracy:", rf_train_acc)
-    print("Random Forest Testing Accuracy:", rf_test_acc)
-
-    # Initialize KNN model
-    knn = KNeighborsClassifier(n_neighbors=30)
-
-    # Train the model
-    knn.fit(X_train, y_train)
-
-    # Predict on test data
-    y_pred_knn = knn.predict(X_test)
-
-    # Evaluation
-    print("Confusion Matrix:")
-    print(confusion_matrix(y_test, y_pred_knn))
-
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred_knn))
-
-    # Initialize model with cross-validation
-    lr = LogisticRegressionCV(
-        solver='lbfgs',
-        max_iter=5000,
-        cv=10
+#   Model Comparison
+    results_df = pd.DataFrame(results)
+    results_df = results_df.sort_values(
+        by="CV Mean F1-score",
+        ascending=False
     )
 
-    # Train model
-    lr.fit(X_train, y_train)
+    print("\nModel Comparison:")
+    print(results_df)
 
-    # Predict on test data
-    y_pred_lr = lr.predict(X_test)
+#   Select the best model
+    best_model_name = results_df.iloc[0]["Model"]
+    print("\nBest Model:", best_model_name)
 
-    # Evaluation
-    print("Confusion Matrix:")
-    print(confusion_matrix(y_test, y_pred_lr))
-
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred_lr))
-
-    print("\nAccuracy:", accuracy_score(y_test, y_pred_lr))
-
-    # Initialize model
-    gnb = GaussianNB()
-
-    # Train model
-    gnb.fit(X_train, y_train)
-
-    # Predict on test data
-    y_pred_gnb = gnb.predict(X_test)
-
-    # Training accuracy
-    gnb_train_acc = accuracy_score(y_train, gnb.predict(X_train))
-
-    # Testing accuracy
-    gnb_test_acc = accuracy_score(y_test, y_pred_gnb)
-
-    print("Naïve Bayes Training Accuracy:", gnb_train_acc)
-    print("Naïve Bayes Testing Accuracy:", gnb_test_acc)
-
-    # Initialize SVM model
-    svc = SVC()
-
-    # Train model
-    svc.fit(X_train, y_train)
-
-    # Predict on test data
-    y_pred_svc = svc.predict(X_test)
-
-    # Accuracy
-    svc_train_acc = accuracy_score(y_train, svc.predict(X_train))
-    svc_test_acc = accuracy_score(y_test, y_pred_svc)
-
-    print("Training accuracy of SVM:", svc_train_acc)
-    print("Testing accuracy of SVM:", svc_test_acc)
-
-    # Evaluation metrics
-    print("\nConfusion Matrix:")
-    print(confusion_matrix(y_test, y_pred_svc))
-
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred_svc))
-
+    best_model = models[best_model_name]
+#   Save the best model
+    os.makedirs("models", exist_ok=True)
+    joblib.dump(best_model, "models/best_model.pkl")
+    print(f"\nBest model '{best_model_name}' saved to 'models/best_model.pkl'.")
 
 if __name__ == "__main__":
     main()
