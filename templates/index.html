@@ -20,6 +20,65 @@
             justify-content: center;
             align-items: center;
         }
+
+        .page-layout {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr minmax(760px, 820px) 1fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .side-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            align-self: center;
+        }
+
+        .side-title {
+            font-weight: 700;
+            color: #3f4abb;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .field-card {
+            background: #f7f8ff;
+            border: 1px solid #e3e7ff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .field-card strong {
+            color: #2f357f;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+
+        .field-card p {
+            color: #4f4f4f;
+            font-size: 0.82em;
+            line-height: 1.35;
+        }
+
+        .mapping-list {
+            margin-top: 8px;
+            max-height: 170px;
+            overflow-y: auto;
+            padding-left: 18px;
+            color: #3f3f3f;
+            font-size: 0.8em;
+            line-height: 1.35;
+        }
+
+        .mapping-list li {
+            margin-bottom: 3px;
+        }
         
         .container {
             background: white;
@@ -53,6 +112,21 @@
             color: #667eea;
             font-weight: 600;
         }
+
+        .how-to {
+            background: #f8f9ff;
+            border: 1px solid #dbe1ff;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+            color: #3a3a3a;
+            font-size: 0.92em;
+            line-height: 1.5;
+        }
+
+        .how-to strong {
+            color: #4a56d3;
+        }
         
         form {
             display: grid;
@@ -68,6 +142,12 @@
         .form-group {
             display: flex;
             flex-direction: column;
+        }
+
+        .field-hint {
+            color: #666;
+            font-size: 0.82em;
+            margin-top: 6px;
         }
         
         label {
@@ -103,6 +183,27 @@
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             margin-top: 10px;
+        }
+
+        .sample-btn {
+            background: #eef1ff;
+            color: #3f4abb;
+            border: 1px solid #ced6ff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .sample-btn:hover {
+            background: #e5eaff;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .submit-btn:hover {
@@ -141,6 +242,32 @@
             color: #856404;
             border: 2px solid #ffeaa7;
         }
+
+        .result-explanation {
+            margin-top: 14px;
+            background: #f6f8ff;
+            border: 1px solid #dbe2ff;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: left;
+            color: #2f3f66;
+            font-size: 0.9em;
+            line-height: 1.45;
+        }
+
+        .result-explanation h3 {
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #2c3b88;
+        }
+
+        .result-explanation ul {
+            margin-left: 18px;
+        }
+
+        .result-explanation li {
+            margin-bottom: 6px;
+        }
         
         @keyframes fadeIn {
             from {
@@ -166,10 +293,43 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 1200px) {
+            .page-layout {
+                grid-template-columns: 1fr;
+                max-width: 900px;
+            }
+
+            .side-panel {
+                order: 2;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="page-layout">
+        <aside class="side-panel">
+            <div class="side-title">Left Guide (Fields 1-4)</div>
+            {% if features %}
+                {% set mid = (features|length // 2) %}
+                {% for feature in features[:mid] %}
+                    {% set info = feature_guidance.get(feature, {}) %}
+                    <div class="field-card">
+                        <strong>{{ info.get('label', feature.replace('_', ' ')) }}</strong>
+                        <p>{{ info.get('description', 'Model input field.') }}</p>
+                        {% if info.get('id_mapping') %}
+                        <ul class="mapping-list">
+                            {% for item in info.get('id_mapping', []) %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </aside>
+
+        <div class="container">
         <h1>🛡️ Insurance Fraud Detection</h1>
         <p class="subtitle">Machine Learning Powered Fraud Analysis</p>
         
@@ -178,14 +338,23 @@
             Using {{ features|length }} optimized features for prediction
         </div>
         {% endif %}
+
+        <div class="how-to">
+            <strong>How to use:</strong><br>
+            1) Enter numbers in each field below.<br>
+            2) Use <strong>Fill Sample Values</strong> if you want a quick test.<br>
+            3) Click <strong>Analyze Claim</strong> to see Fraud / Not Fraud with confidence.<br>
+            <em>Note:</em> Some fields are encoded numeric categories from model training data.
+        </div>
         
         <form action="/predict" method="POST">
             <div class="form-grid">
                 {% if features %}
                     {% for feature in features %}
                     <div class="form-group">
+                        {% set info = feature_guidance.get(feature, {}) %}
                         <label for="{{ feature }}">
-                            {{ feature.replace('_', ' ') }}
+                            {{ info.get('label', feature.replace('_', ' ')) }}
                         </label>
                         <input 
                             type="number" 
@@ -193,8 +362,15 @@
                             name="{{ feature }}" 
                             step="any"
                             required
-                            placeholder="Enter {{ feature.replace('_', ' ') }}"
+                            value="{{ form_values.get(feature, '') }}"
+                            min="{{ info.get('min', '') }}"
+                            max="{{ info.get('max', '') }}"
+                            data-example="{{ info.get('example', '') }}"
+                            placeholder="e.g. {{ info.get('example', '') }}"
                         >
+                        <small class="field-hint">
+                            Typical range: {{ info.get('min', 'N/A') }} to {{ info.get('max', 'N/A') }}
+                        </small>
                     </div>
                     {% endfor %}
                 {% else %}
@@ -205,9 +381,14 @@
             </div>
             
             {% if features %}
-            <button type="submit" class="submit-btn">
-                🔍 Analyze Claim
-            </button>
+            <div class="actions">
+                <button type="button" class="sample-btn" onclick="fillSampleValues()">
+                    ✨ Fill Sample Values
+                </button>
+                <button type="submit" class="submit-btn">
+                    🔍 Analyze Claim
+                </button>
+            </div>
             {% endif %}
         </form>
         
@@ -215,7 +396,53 @@
         <div class="result {% if 'fraud' in prediction_text.lower() and 'not fraud' not in prediction_text.lower() %}fraud{% elif 'not fraud' in prediction_text.lower() %}not-fraud{% else %}error{% endif %}">
             {{ prediction_text }}
         </div>
+
+        {% if prediction_explanation %}
+        <div class="result-explanation">
+            <h3>What this means for your entered values</h3>
+            <p>{{ prediction_explanation.summary }}</p>
+            <p>{{ prediction_explanation.interpretation }}</p>
+            <ul>
+                {% for line in prediction_explanation.insights %}
+                    <li>{{ line }}</li>
+                {% endfor %}
+            </ul>
+        </div>
         {% endif %}
+        {% endif %}
+        </div>
+
+        <aside class="side-panel">
+            <div class="side-title">Right Guide (Fields 5-8)</div>
+            {% if features %}
+                {% set mid = (features|length // 2) %}
+                {% for feature in features[mid:] %}
+                    {% set info = feature_guidance.get(feature, {}) %}
+                    <div class="field-card">
+                        <strong>{{ info.get('label', feature.replace('_', ' ')) }}</strong>
+                        <p>{{ info.get('description', 'Model input field.') }}</p>
+                        {% if info.get('id_mapping') %}
+                        <ul class="mapping-list">
+                            {% for item in info.get('id_mapping', []) %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </aside>
     </div>
+
+    <script>
+        function fillSampleValues() {
+            const inputs = document.querySelectorAll('input[type="number"][data-example]');
+            inputs.forEach((input) => {
+                if (input.dataset.example !== '') {
+                    input.value = input.dataset.example;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
