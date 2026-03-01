@@ -3,446 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insurance Fraud Detection System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .page-layout {
-            width: 100%;
-            max-width: 1400px;
-            display: grid;
-            grid-template-columns: 1fr minmax(760px, 820px) 1fr;
-            gap: 18px;
-            align-items: stretch;
-        }
-
-        .side-panel {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-            align-self: center;
-        }
-
-        .side-title {
-            font-weight: 700;
-            color: #3f4abb;
-            margin-bottom: 10px;
-            font-size: 0.95em;
-        }
-
-        .field-card {
-            background: #f7f8ff;
-            border: 1px solid #e3e7ff;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .field-card strong {
-            color: #2f357f;
-            display: block;
-            margin-bottom: 4px;
-            font-size: 0.9em;
-        }
-
-        .field-card p {
-            color: #4f4f4f;
-            font-size: 0.82em;
-            line-height: 1.35;
-        }
-
-        .mapping-list {
-            margin-top: 8px;
-            max-height: 170px;
-            overflow-y: auto;
-            padding-left: 18px;
-            color: #3f3f3f;
-            font-size: 0.8em;
-            line-height: 1.35;
-        }
-
-        .mapping-list li {
-            margin-bottom: 3px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 800px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.95em;
-        }
-        
-        .feature-count {
-            text-align: center;
-            background: #f0f4ff;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .how-to {
-            background: #f8f9ff;
-            border: 1px solid #dbe1ff;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 20px;
-            color: #3a3a3a;
-            font-size: 0.92em;
-            line-height: 1.5;
-        }
-
-        .how-to strong {
-            color: #4a56d3;
-        }
-        
-        form {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .field-hint {
-            color: #666;
-            font-size: 0.82em;
-            margin-top: 6px;
-        }
-        
-        label {
-            font-weight: 600;
-            color: #444;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            text-transform: capitalize;
-        }
-        
-        input[type="number"] {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-top: 10px;
-        }
-
-        .sample-btn {
-            background: #eef1ff;
-            color: #3f4abb;
-            border: 1px solid #ced6ff;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .sample-btn:hover {
-            background: #e5eaff;
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-        
-        .result {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: 600;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .result.fraud {
-            background: #fee;
-            color: #c33;
-            border: 2px solid #fcc;
-        }
-        
-        .result.not-fraud {
-            background: #efe;
-            color: #3c3;
-            border: 2px solid #cfc;
-        }
-        
-        .result.error {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-        }
-
-        .result-explanation {
-            margin-top: 14px;
-            background: #f6f8ff;
-            border: 1px solid #dbe2ff;
-            border-radius: 8px;
-            padding: 14px;
-            text-align: left;
-            color: #2f3f66;
-            font-size: 0.9em;
-            line-height: 1.45;
-        }
-
-        .result-explanation h3 {
-            margin-bottom: 8px;
-            font-size: 1em;
-            color: #2c3b88;
-        }
-
-        .result-explanation ul {
-            margin-left: 18px;
-        }
-
-        .result-explanation li {
-            margin-bottom: 6px;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 1.5em;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .page-layout {
-                grid-template-columns: 1fr;
-                max-width: 900px;
-            }
-
-            .side-panel {
-                order: 2;
-            }
-        }
-    </style>
+    <title>Insurance Fraud Detection Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="page-layout">
-        <aside class="side-panel">
-            <div class="side-title">Left Guide (Fields 1-4)</div>
-            {% if features %}
-                {% set mid = (features|length // 2) %}
-                {% for feature in features[:mid] %}
-                    {% set info = feature_guidance.get(feature, {}) %}
-                    <div class="field-card">
-                        <strong>{{ info.get('label', feature.replace('_', ' ')) }}</strong>
-                        <p>{{ info.get('description', 'Model input field.') }}</p>
-                        {% if info.get('id_mapping') %}
-                        <ul class="mapping-list">
-                            {% for item in info.get('id_mapping', []) %}
-                            <li>{{ item }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </aside>
-
-        <div class="container">
-        <h1>🛡️ Insurance Fraud Detection</h1>
-        <p class="subtitle">Machine Learning Powered Fraud Analysis</p>
-        
-        {% if features %}
-        <div class="feature-count">
-            Using {{ features|length }} optimized features for prediction
-        </div>
-        {% endif %}
-
-        <div class="how-to">
-            <strong>How to use:</strong><br>
-            1) Enter numbers in each field below.<br>
-            2) Use <strong>Fill Sample Values</strong> if you want a quick test.<br>
-            3) Click <strong>Analyze Claim</strong> to see Fraud / Not Fraud with confidence.<br>
-            <em>Note:</em> Some fields are encoded numeric categories from model training data.
-        </div>
-        
-        <form action="/predict" method="POST">
-            <div class="form-grid">
-                {% if features %}
-                    {% for feature in features %}
-                    <div class="form-group">
-                        {% set info = feature_guidance.get(feature, {}) %}
-                        <label for="{{ feature }}">
-                            {{ info.get('label', feature.replace('_', ' ')) }}
-                        </label>
-                        <input 
-                            type="number" 
-                            id="{{ feature }}" 
-                            name="{{ feature }}" 
-                            step="any"
-                            required
-                            value="{{ form_values.get(feature, '') }}"
-                            min="{{ info.get('min', '') }}"
-                            max="{{ info.get('max', '') }}"
-                            data-example="{{ info.get('example', '') }}"
-                            placeholder="e.g. {{ info.get('example', '') }}"
-                        >
-                        <small class="field-hint">
-                            Typical range: {{ info.get('min', 'N/A') }} to {{ info.get('max', 'N/A') }}
-                        </small>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p style="color: #c33; text-align: center;">
-                        Error: Model features not loaded. Please train the model first.
-                    </p>
-                {% endif %}
+    <div class="dashboard">
+        <div class="dashboard-container">
+            <!-- ===== HEADER ===== -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">🛡️ Fraud Detection Dashboard</h1>
+                <p class="dashboard-subtitle">Machine Learning-Powered Insurance Claim Analysis</p>
             </div>
-            
-            {% if features %}
-            <div class="actions">
-                <button type="button" class="sample-btn" onclick="fillSampleValues()">
-                    ✨ Fill Sample Values
-                </button>
-                <button type="submit" class="submit-btn">
-                    🔍 Analyze Claim
-                </button>
-            </div>
-            {% endif %}
-        </form>
-        
-        {% if prediction_text %}
-        <div class="result {% if 'fraud' in prediction_text.lower() and 'not fraud' not in prediction_text.lower() %}fraud{% elif 'not fraud' in prediction_text.lower() %}not-fraud{% else %}error{% endif %}">
-            {{ prediction_text }}
-        </div>
 
-        {% if prediction_explanation %}
-        <div class="result-explanation">
-            <h3>What this means for your entered values</h3>
-            <p>{{ prediction_explanation.summary }}</p>
-            <p>{{ prediction_explanation.interpretation }}</p>
-            <ul>
-                {% for line in prediction_explanation.insights %}
-                    <li>{{ line }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-        {% endif %}
-        </div>
-
-        <aside class="side-panel">
-            <div class="side-title">Right Guide (Fields 5-8)</div>
-            {% if features %}
-                {% set mid = (features|length // 2) %}
-                {% for feature in features[mid:] %}
-                    {% set info = feature_guidance.get(feature, {}) %}
-                    <div class="field-card">
-                        <strong>{{ info.get('label', feature.replace('_', ' ')) }}</strong>
-                        <p>{{ info.get('description', 'Model input field.') }}</p>
-                        {% if info.get('id_mapping') %}
-                        <ul class="mapping-list">
-                            {% for item in info.get('id_mapping', []) %}
-                            <li>{{ item }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
+            <!-- ===== MAIN GRID ===== -->
+            <div class="dashboard-grid">
+                <!-- ===== LEFT SIDEBAR: MODEL INFO ===== -->
+                <div class="dashboard-sidebar">
+                    <!-- Model Information Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-header-icon">⚙️</div>
+                            <div>
+                                <div class="card-header-title">Model Information</div>
+                                <div class="card-header-subtitle">RandomForest v2.0</div>
+                            </div>
+                        </div>
+                        <div class="model-info">
+                            <div class="info-item">
+                                <div class="info-label">Accuracy</div>
+                                <div class="info-value">84%</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">F1 Score</div>
+                                <div class="info-value">0.704</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Features</div>
+                                <div class="info-value">8</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Last Trained</div>
+                                <div class="info-value">Mar 2026</div>
+                            </div>
+                        </div>
                     </div>
-                {% endfor %}
-            {% endif %}
-        </aside>
+
+                    <!-- Feature Importance Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-header-icon">📊</div>
+                            <div class="card-header-title">Top Features</div>
+                        </div>
+                        <div class="feature-importance">
+                            <div class="feature-bar">
+                                <div class="feature-name">Incident Severity</div>
+                                <div class="feature-bar-container">
+                                    <div class="feature-bar-fill" style="width: 100%;"><span class="feature-value">15.8%</span></div>
+                                </div>
+                            </div>
+                            <div class="feature-bar">
+                                <div class="feature-name">Insured Hobbies</div>
+                                <div class="feature-bar-container">
+                                    <div class="feature-bar-fill" style="width: 51.2%;"><span class="feature-value">8.1%</span></div>
+                                </div>
+                            </div>
+                            <div class="feature-bar">
+                                <div class="feature-name">Vehicle Claim</div>
+                                <div class="feature-bar-container">
+                                    <div class="feature-bar-fill" style="width: 28.3%;"><span class="feature-value">4.5%</span></div>
+                                </div>
+                            </div>
+                            <div class="feature-bar">
+                                <div class="feature-name">Insured ZIP</div>
+                                <div class="feature-bar-container">
+                                    <div class="feature-bar-fill" style="width: 24.8%;"><span class="feature-value">3.9%</span></div>
+                                </div>
+                            </div>
+                            <div class="feature-bar">
+                                <div class="feature-name">Total Claim Amount</div>
+                                <div class="feature-bar-container">
+                                    <div class="feature-bar-fill" style="width: 23.0%;"><span class="feature-value">3.6%</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== CENTER: FORM & PREDICTION ===== -->
+                <div class="dashboard-main">
+                    <!-- Input Form Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-header-icon">📋</div>
+                            <div class="card-header-title">Claim Details</div>
+                        </div>
+
+                        <form id="predictionForm" method="POST" action="/predict">
+                            <!-- ===== POLICY INFORMATION ===== -->
+                            <div>
+                                <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
+                                    <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">📄 Policy Information</h3>
+                                </div>
+                                <div class="input-section">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Insured ZIP Code
+                                            <span class="form-label-unit">(Location)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="insured_zip" 
+                                            class="form-input"
+                                            placeholder="e.g. 505000"
+                                            required
+                                        >
+                                        <div class="form-hint">Encoded location (430k - 621k)</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Customer Duration
+                                            <span class="form-label-unit">(months)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="months_as_customer" 
+                                            class="form-input"
+                                            placeholder="e.g. 200"
+                                            required
+                                        >
+                                        <div class="form-hint">How long as customer (0 - 479 months)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== CLAIM DETAILS ===== -->
+                            <div style="margin-top: var(--spacing-lg);">
+                                <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
+                                    <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">💰 Claim Details</h3>
+                                </div>
+                                <div class="input-section">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Total Claim Amount
+                                            <span class="form-label-unit">($)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="total_claim_amount" 
+                                            class="form-input"
+                                            placeholder="e.g. 50000"
+                                            required
+                                        >
+                                        <div class="form-hint">Total amount claimed (100 - 114,920)</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Vehicle Claim Amount
+                                            <span class="form-label-unit">($)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="vehicle_claim" 
+                                            class="form-input"
+                                            placeholder="e.g. 35000"
+                                            required
+                                        >
+                                        <div class="form-hint">Vehicle damage amount (70 - 79,560)</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Property Claim Amount
+                                            <span class="form-label-unit">($)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="property_claim" 
+                                            class="form-input"
+                                            placeholder="e.g. 7500"
+                                            required
+                                        >
+                                        <div class="form-hint">Property damage amount (0 - 23,670)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== INCIDENT DETAILS ===== -->
+                            <div style="margin-top: var(--spacing-lg);">
+                                <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
+                                    <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">⚠️ Incident Details</h3>
+                                </div>
+                                <div class="input-section">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Incident Severity
+                                            <span class="form-label-unit">(Level)</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="incident_severity" 
+                                            class="form-input"
+                                            placeholder="e.g. 1"
+                                            min="0"
+                                            max="3"
+                                            required
+                                        >
+                                        <div class="form-hint">0 = Minor, 3 = Severe</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Incident Date
+                                            <span class="form-label-unit">(DD-MM-YYYY)</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            name="incident_date_actual" 
+                                            class="form-input"
+                                            placeholder="e.g. 15-06-2026"
+                                            required
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== CUSTOMER INFORMATION ===== -->
+                            <div style="margin-top: var(--spacing-lg);">
+                                <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 2px solid var(--border-light);">
+                                    <h3 style="font-size: 1rem; color: var(--text-dark); font-weight: 600;">👤 Customer Information</h3>
+                                </div>
+                                <div class="input-section">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Customer Hobby
+                                            <span class="form-label-unit">(Category)</span>
+                                        </label>
+                                        <select name="insured_hobbies" class="form-input" required>
+                                            <option value="">-- Select Hobby --</option>
+                                            <option value="0">Base Jumping</option>
+                                            <option value="1">Basketball</option>
+                                            <option value="2">Board Games</option>
+                                            <option value="3">Bungie Jumping</option>
+                                            <option value="4">Camping</option>
+                                            <option value="5">Chess</option>
+                                            <option value="6">Cross-Fit</option>
+                                            <option value="7">Dancing</option>
+                                            <option value="8">Exercise</option>
+                                            <option value="9">Golf</option>
+                                            <option value="10">Hiking</option>
+                                            <option value="11">Kayaking</option>
+                                            <option value="12">Movies</option>
+                                            <option value="13">Paintball</option>
+                                            <option value="14">Polo</option>
+                                            <option value="15">Reading</option>
+                                            <option value="16">Skydiving</option>
+                                            <option value="17">Sleeping</option>
+                                            <option value="18">Video Games</option>
+                                            <option value="19">Yachting</option>
+                                        </select>
+                                        <div class="form-hint">Select insured person's hobby</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== ACTION BUTTONS ===== -->
+                            <div class="button-group">
+                                <button type="button" class="btn btn-secondary" onclick="fillSampleValues()">
+                                    ✨ Fill Sample Values
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <span id="btnText">🔍 Analyze Claim</span>
+                                    <span id="spinner" class="spinner hidden"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- ===== PREDICTION RESULT ===== -->
+                    <div id="predictionResult" class="hidden">
+                        <div class="prediction-panel fade-in">
+                            <div class="prediction-badge" id="resultBadge">
+                                <span id="resultEmoji">🔍</span> <span id="resultText">Analyzing...</span>
+                            </div>
+                            <div class="risk-meter">
+                                <p class="prediction-text" id="confidenceText">Confidence</p>
+                                <div class="risk-gauge">
+                                    <div class="risk-gauge-inner">
+                                        <div class="risk-score" id="riskScore">0</div>
+                                        <div class="risk-unit">/100</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- ===== INSIGHTS ===== -->
+                        <div class="card mt-lg">
+                            <div class="card-header">
+                                <div class="card-header-icon">💡</div>
+                                <div class="card-header-title">Analysis Insights</div>
+                            </div>
+                            <div id="insightsContent">Loading insights...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== RIGHT SIDEBAR: FIELD GUIDE ===== -->
+                <div class="dashboard-sidebar">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-header-icon">ℹ️</div>
+                            <div class="card-header-title">Input Guide</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-light); line-height: 1.6;">
+                            <p style="margin-bottom: var(--spacing-md);"><strong>How to Use:</strong></p>
+                            <ol style="margin-left: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                                <li>Fill in claim details by category</li>
+                                <li>Use dropdown for hobby selection</li>
+                                <li>Click "Fill Sample Values" for a demo</li>
+                                <li>Click "Analyze Claim" to predict</li>
+                            </ol>
+                            
+                            <p style="margin-bottom: var(--spacing-md); margin-top: var(--spacing-lg);"><strong>Field Ranges:</strong></p>
+                            <div style="background: var(--bg-light); padding: var(--spacing-md); border-radius: var(--radius-md);">
+                                <p><small>💰 Claims: $100 - $115k</small></p>
+                                <p><small>📍 ZIP: 430k - 621k</small></p>
+                                <p><small>⚠️ Severity: 0 - 3</small></p>
+                                <p><small>📅 Duration: 0 - 479 mo</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- ===== SCRIPTS ===== -->
     <script>
+        // ===== Sample Data Filling =====
         function fillSampleValues() {
-            const inputs = document.querySelectorAll('input[type="number"][data-example]');
-            inputs.forEach((input) => {
-                if (input.dataset.example !== '') {
-                    input.value = input.dataset.example;
-                }
-            });
+            document.querySelector('[name="insured_zip"]').value = '505000';
+            document.querySelector('[name="months_as_customer"]').value = '200';
+            document.querySelector('[name="total_claim_amount"]').value = '50000';
+            document.querySelector('[name="vehicle_claim"]').value = '35000';
+            document.querySelector('[name="property_claim"]').value = '7500';
+            document.querySelector('[name="incident_severity"]').value = '1';
+            document.querySelector('[name="incident_date_actual"]').value = '15-06-2026';
+            document.querySelector('[name="insured_hobbies"]').value = '10';
         }
+
+        // ===== FORM SUBMISSION =====
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+
+            // Show loading
+            submitBtn.classList.add('btn-loading');
+            btnText.classList.add('hidden');
+            spinner.classList.remove('hidden');
+
+            // Collect form data as JSON
+            const formData = new FormData(this);
+            const jsonData = {
+                incident_severity: formData.get('incident_severity'),
+                insured_hobbies: formData.get('insured_hobbies'),
+                vehicle_claim: formData.get('vehicle_claim'),
+                insured_zip: formData.get('insured_zip'),
+                total_claim_amount: formData.get('total_claim_amount'),
+                property_claim: formData.get('property_claim'),
+                incident_date_actual: formData.get('incident_date_actual'),
+                months_as_customer: formData.get('months_as_customer'),
+            };
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Prediction failed');
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayPrediction(data.prediction, data.confidence, data);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Prediction failed: ' + error.message);
+            } finally {
+                // Hide loading
+                submitBtn.classList.remove('btn-loading');
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // ===== DISPLAY PREDICTION =====
+        function displayPrediction(resultText, confidence, responseData) {
+            const resultDiv = document.getElementById('predictionResult');
+            const resultBadge = document.getElementById('resultBadge');
+            const riskScore = document.getElementById('riskScore');
+            const progressFill = document.getElementById('progressFill');
+            const confidenceText = document.getElementById('confidenceText');
+            const insightsContent = document.getElementById('insightsContent');
+
+            // Determine if fraud or not
+            const isFraud = resultText === 'Fraud';
+
+            // Update badge
+            if (isFraud) {
+                resultBadge.className = 'prediction-badge fraud';
+                document.getElementById('resultEmoji').textContent = '⚠️';
+            } else {
+                resultBadge.className = 'prediction-badge safe';
+                document.getElementById('resultEmoji').textContent = '✅';
+            }
+            document.getElementById('resultText').textContent = `Prediction: ${resultText}`;
+
+            // Update metrics
+            riskScore.textContent = Math.round(confidence);
+            progressFill.style.width = confidence + '%';
+            confidenceText.textContent = `Confidence: ${Math.round(confidence)}%`;
+            
+            // Display insights from JSON response
+            if (responseData && responseData.insights) {
+                let insightsHtml = '<div style="line-height: 1.8;">';
+                insightsHtml += `<p style="margin-bottom: var(--spacing-md);"><strong>${responseData.summary}</strong></p>`;
+                insightsHtml += `<p style="margin-bottom: var(--spacing-md); color: var(--text-light);">${responseData.interpretation}</p>`;
+                insightsHtml += '<div style="background: var(--bg-light); padding: var(--spacing-md); border-radius: var(--radius-md);"><strong style="color: var(--text-dark);">Value Analysis:</strong><ul style="margin: var(--spacing-md) 0 0 var(--spacing-lg); list-style: none;">';
+                
+                responseData.insights.forEach(insight => {
+                    insightsHtml += `<li style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-light);">• ${insight}</li>`;
+                });
+                
+                insightsHtml += '</ul></div></div>';
+                insightsContent.innerHTML = insightsHtml;
+            } else {
+                insightsContent.innerHTML = `<p>Prediction: <strong>${resultText}</strong> with ${confidence}% confidence</p>`;
+            }
+
+            // Show result
+            resultDiv.classList.remove('hidden');
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ===== SELECT STYLING =====
+        const selects = document.querySelectorAll('select.form-input');
+        selects.forEach(select => {
+            select.style.cursor = 'pointer';
+            select.style.appearance = 'none';
+            select.style.backgroundImage = `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`;
+            select.style.backgroundRepeat = 'no-repeat';
+            select.style.backgroundPosition = 'right 0.75rem center';
+            select.style.backgroundSize = '1.5em';
+            select.style.paddingRight = '2.5rem';
+        });
     </script>
 </body>
 </html>

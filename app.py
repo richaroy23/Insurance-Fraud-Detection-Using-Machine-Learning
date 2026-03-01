@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from typing import Dict, List, Any
+from flask import Flask, render_template, request, jsonify
+from typing import Dict, List, Any, Mapping, Tuple
 import numpy as np
 import joblib
 import os
@@ -23,6 +23,26 @@ if not all(os.path.exists(p) for p in [model_path, scaler_path, features_path]):
 model = joblib.load(model_path)
 scaler = joblib.load(scaler_path)
 model_features: List[str] = joblib.load(features_path)
+
+
+def build_incident_date_encoder() -> LabelEncoder:
+    """Build LabelEncoder for incident_date using the same logic as training."""
+    df = load_data()
+    df = df.dropna(axis=1, how='all')
+
+    if 'incident_date' not in df.columns:
+        raise ValueError("incident_date column not found in dataset")
+
+    encoder = LabelEncoder()
+    encoder.fit(df['incident_date'].astype(str))
+    return encoder
+
+
+incident_date_encoder = build_incident_date_encoder()
+incident_date_known_dates = set(incident_date_encoder.classes_)
+incident_date_min = str(min(incident_date_encoder.classes_))
+incident_date_max = str(max(incident_date_encoder.classes_))
+incident_date_example = str(incident_date_encoder.classes_[len(incident_date_encoder.classes_) // 2])
 
 
 def compute_feature_guidance(features: List[str]) -> Dict[str, Dict[str, Any]]:
@@ -158,6 +178,82 @@ def build_prediction_explanation(
     }
 
 
+def encode_incident_date(raw_value: str) -> float:
+    """Convert user-provided date to model incident_date encoding.
+    
+    Accepts DD-MM-YYYY or YYYY-MM-DD format.
+    Maps any calendar date (Jan 1 - Dec 31) proportionally to the training range (Jan 1 - Mar 1, 2015).
+    Example: 31-12-2026 (99% through year) → Mar 1 (99% through 60-day range)
+    """
+    value = str(raw_value).strip()
+    if value == "":
+        raise ValueError("Please enter a value for: incident_date")
+
+    parsed_date = None
+    
+    # Try DD-MM-YYYY format first
+    parsed_date = pd.to_datetime(value, format='%d-%m-%Y', errors='coerce')
+    
+    # If that fails, try YYYY-MM-DD format (backward compatibility)
+    if pd.isna(parsed_date):
+        parsed_date = pd.to_datetime(value, format='%Y-%m-%d', errors='coerce')
+    
+    if pd.isna(parsed_date):
+        raise ValueError(
+            "Invalid date format. Please use DD-MM-YYYY (e.g., 15-06-2026) or YYYY-MM-DD."
+        )
+    
+    # Calculate day-of-year (1-366)
+    day_of_year = parsed_date.dayofyear
+    # Days in year (account for leap years)
+    days_in_year = 366 if parsed_date.is_leap_year else 365
+    # Map proportionally to training date range (0-59 days from Jan 1, 2015)
+    training_day_offset = int((day_of_year - 1) / days_in_year * 59)
+    training_day_offset = min(training_day_offset, 59)  # Cap at 59
+    
+    # Compute the mapped date in 2015
+    training_start = pd.to_datetime('2015-01-01')
+    mapped_date = training_start + pd.Timedelta(days=training_day_offset)
+    normalized = mapped_date.strftime('%Y-%m-%d')
+    
+    # This should always be in range, but validate just in case
+    if normalized not in incident_date_known_dates:
+        raise ValueError(
+            f"Unexpected error: mapped date {normalized} is not in training set. Please contact support."
+        )
+    return float(incident_date_encoder.transform([normalized])[0])
+
+
+def parse_inputs_from_source(source: Mapping[str, Any]) -> Tuple[Dict[str, str], List[float]]:
+    """Parse and validate inputs in model feature order from form or JSON source."""
+    input_values: List[float] = []
+    form_values: Dict[str, str] = {}
+
+    for feature in model_features:
+        if feature == 'incident_date':
+            raw_incident_date = str(
+                source.get('incident_date_actual', source.get('incident_date', ''))
+            ).strip()
+            encoded_incident_date = encode_incident_date(raw_incident_date)
+            form_values[feature] = str(encoded_incident_date)
+            input_values.append(encoded_incident_date)
+            continue
+
+        raw_value = str(source.get(feature, "")).strip()
+        if raw_value == "":
+            raise ValueError(f"Please enter a value for: {feature}")
+
+        try:
+            parsed_value = float(raw_value)
+        except ValueError as exc:
+            raise ValueError(f"Invalid number for {feature}: {raw_value}") from exc
+
+        form_values[feature] = raw_value
+        input_values.append(parsed_value)
+
+    return form_values, input_values
+
+
 for feature_name in model_features:
     if feature_name in feature_guidance:
         feature_guidance[feature_name]["description"] = get_feature_description(feature_name)
@@ -180,9 +276,67 @@ def home():
         "index.html",
         features=model_features,
         feature_guidance=feature_guidance,
+        incident_date_min=incident_date_min,
+        incident_date_max=incident_date_max,
+        incident_date_example=incident_date_example,
         form_values={},
         prediction_explanation=None,
     )
+
+
+@app.route('/api/predict', methods=['POST'])
+def api_predict():
+    """
+    API endpoint for predictions. Returns JSON with prediction and insights.
+    Expects JSON body with model feature keys.
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+        
+        # Extract input values in exact feature order
+        form_values, input_values = parse_inputs_from_source(data)
+        
+        # Convert to numpy array and reshape
+        input_array = np.array(input_values).reshape(1, -1)
+        
+        # Apply scaling
+        input_scaled = scaler.transform(input_array)
+        
+        # Make prediction
+        prediction = model.predict(input_scaled)[0]
+        probability = model.predict_proba(input_scaled)[0]
+        
+        # Convert prediction to human-readable result
+        if prediction == 1:
+            result = "Fraud"
+            confidence = float(probability[1] * 100)
+        else:
+            result = "Not Fraud"
+            confidence = float(probability[0] * 100)
+        
+        # Build explanation
+        prediction_explanation = build_prediction_explanation(
+            form_values=form_values,
+            guidance=feature_guidance,
+            result=result,
+            confidence=confidence,
+        )
+        
+        return jsonify({
+            'success': True,
+            'prediction': result,
+            'confidence': round(confidence, 1),
+            'summary': prediction_explanation['summary'],
+            'interpretation': prediction_explanation['interpretation'],
+            'insights': prediction_explanation['insights'],
+        })
+    
+    except ValueError as ve:
+        return jsonify({'error': f'Input Error: {str(ve)}'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Prediction Error: {str(e)}'}), 500
 
 
 @app.route('/predict', methods=['POST'])
@@ -195,23 +349,7 @@ def predict():
     """
     try:
         # Extract input values in exact feature order
-        input_values = []
-        form_values: Dict[str, str] = {}
-        for feature in model_features:
-            if feature not in request.form:
-                raise ValueError(f"Missing required field: {feature}")
-
-            raw_value = request.form.get(feature, "").strip()
-            if raw_value == "":
-                raise ValueError(f"Please enter a value for: {feature}")
-
-            try:
-                parsed_value = float(raw_value)
-            except ValueError as exc:
-                raise ValueError(f"Invalid number for {feature}: {raw_value}") from exc
-
-            form_values[feature] = raw_value
-            input_values.append(parsed_value)
+        form_values, input_values = parse_inputs_from_source(request.form)
         
         # Convert to numpy array and reshape
         input_array = np.array(input_values).reshape(1, -1)
@@ -243,6 +381,9 @@ def predict():
             "index.html",
             features=model_features,
             feature_guidance=feature_guidance,
+            incident_date_min=incident_date_min,
+            incident_date_max=incident_date_max,
+            incident_date_example=incident_date_example,
             form_values=form_values,
             prediction_text=prediction_text,
             prediction_explanation=prediction_explanation,
@@ -254,6 +395,9 @@ def predict():
             "index.html",
             features=model_features,
             feature_guidance=feature_guidance,
+            incident_date_min=incident_date_min,
+            incident_date_max=incident_date_max,
+            incident_date_example=incident_date_example,
             form_values=request.form.to_dict(),
             prediction_text=error_msg,
             prediction_explanation=None,
@@ -265,6 +409,9 @@ def predict():
             "index.html",
             features=model_features,
             feature_guidance=feature_guidance,
+            incident_date_min=incident_date_min,
+            incident_date_max=incident_date_max,
+            incident_date_example=incident_date_example,
             form_values=request.form.to_dict(),
             prediction_text=error_msg,
             prediction_explanation=None,
