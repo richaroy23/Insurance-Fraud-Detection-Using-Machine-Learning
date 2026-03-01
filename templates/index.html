@@ -1,33 +1,221 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Insurance Fraud Detection</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Fraud Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+        
+        .feature-count {
+            text-align: center;
+            background: #f0f4ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        form {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            text-transform: capitalize;
+        }
+        
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .result.fraud {
+            background: #fee;
+            color: #c33;
+            border: 2px solid #fcc;
+        }
+        
+        .result.not-fraud {
+            background: #efe;
+            color: #3c3;
+            border: 2px solid #cfc;
+        }
+        
+        .result.error {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <h2>Insurance Fraud Detection System</h2>
-
-    <form action="/predict" method="POST">
-
-        <label>Age:</label>
-        <input type="number" name="age" required><br><br>
-
-        <label>Months as Customer:</label>
-        <input type="number" name="months_as_customer" required><br><br>
-
-        <label>Policy Deductible:</label>
-        <input type="number" name="policy_deductable" required><br><br>
-
-        <label>Total Claim Amount:</label>
-        <input type="number" name="total_claim_amount" required><br><br>
-
-        <!-- Add remaining features as needed -->
-
-        <button type="submit">Predict</button>
-
-    </form>
-
-    <h3>{{ prediction_text }}</h3>
-
+    <div class="container">
+        <h1>🛡️ Insurance Fraud Detection</h1>
+        <p class="subtitle">Machine Learning Powered Fraud Analysis</p>
+        
+        {% if features %}
+        <div class="feature-count">
+            Using {{ features|length }} optimized features for prediction
+        </div>
+        {% endif %}
+        
+        <form action="/predict" method="POST">
+            <div class="form-grid">
+                {% if features %}
+                    {% for feature in features %}
+                    <div class="form-group">
+                        <label for="{{ feature }}">
+                            {{ feature.replace('_', ' ') }}
+                        </label>
+                        <input 
+                            type="number" 
+                            id="{{ feature }}" 
+                            name="{{ feature }}" 
+                            step="any"
+                            required
+                            placeholder="Enter {{ feature.replace('_', ' ') }}"
+                        >
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #c33; text-align: center;">
+                        Error: Model features not loaded. Please train the model first.
+                    </p>
+                {% endif %}
+            </div>
+            
+            {% if features %}
+            <button type="submit" class="submit-btn">
+                🔍 Analyze Claim
+            </button>
+            {% endif %}
+        </form>
+        
+        {% if prediction_text %}
+        <div class="result {% if 'fraud' in prediction_text.lower() and 'not fraud' not in prediction_text.lower() %}fraud{% elif 'not fraud' in prediction_text.lower() %}not-fraud{% else %}error{% endif %}">
+            {{ prediction_text }}
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
