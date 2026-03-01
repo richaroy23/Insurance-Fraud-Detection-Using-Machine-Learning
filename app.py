@@ -5,7 +5,7 @@ import joblib
 
 # Load trained model and scaler
 model = joblib.load("models/best_model.pkl")
-scaler = joblib.load("models/std_scaler.pkl")   # only if you saved scaler
+scaler = joblib.load("models/std_scaler.pkl")   
 
 app = Flask(__name__)
 
