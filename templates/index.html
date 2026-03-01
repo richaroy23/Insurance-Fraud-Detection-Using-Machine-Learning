@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Insurance Fraud Detection</title>
+</head>
+<body>
+
+    <h2>Insurance Fraud Detection System</h2>
+
+    <form action="/predict" method="POST">
+
+        <label>Age:</label>
+        <input type="number" name="age" required><br><br>
+
+        <label>Months as Customer:</label>
+        <input type="number" name="months_as_customer" required><br><br>
+
+        <label>Policy Deductible:</label>
+        <input type="number" name="policy_deductable" required><br><br>
+
+        <label>Total Claim Amount:</label>
+        <input type="number" name="total_claim_amount" required><br><br>
+
+        <!-- Add remaining features as needed -->
+
+        <button type="submit">Predict</button>
+
+    </form>
+
+    <h3>{{ prediction_text }}</h3>
+
+</body>
+</html>

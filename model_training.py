@@ -16,7 +16,7 @@ from preprocessing import preprocess
 
 
 def main() -> None:
-    X_train, X_test, y_train, y_test = preprocess()
+    X_train, X_test, y_train, y_test, scaler, encoders = preprocess()
 
     models = {
         "Decision Tree": DecisionTreeClassifier(class_weight='balanced'),
@@ -87,7 +87,7 @@ def main() -> None:
 #   Save the best model
     os.makedirs("models", exist_ok=True)
     joblib.dump(best_model, "models/best_model.pkl")
-    print(f"\nBest model '{best_model_name}' saved to 'models/best_model.pkl'.")
-
+    joblib.dump(scaler, "models/std_scaler.pkl")
+    print("Model and scaler saved successfully.")
 if __name__ == "__main__":
     main()
